@@ -115,7 +115,7 @@ Interview line: *We normalize with weather, split grid/curtailment from equipmen
 
 - [x] Name the product and repo (**Solar warranty demo** / `solar-warranty`, GitHub `mertcp`)
 - [x] Schema: site, string, readings, milestones, events, claim_drafts (`app/models.py`)
-- [x] Seed 12 sites, 30-day series, spotlights SV-03, SV-07, SV-11 (`app/seed.py`)
+- [x] Seed 14 sites (fixed RNG), 30-day wobbly series, spotlights SV-03, SV-07, SV-11 (`app/seed.py`)
 - [x] Scoring: PR, kWh gap, thermal stress, SLA days (`app/scoring.py`)
 - [x] API: portfolio, site detail, POST reading/milestone, claim draft (`app/api.py`)
 - [x] UI: portfolio table, array side view, claim accept/edit (`app/portfolio.html`)
@@ -137,15 +137,44 @@ Interview line: *We normalize with weather, split grid/curtailment from equipmen
 - Looks like a dashboard with no warranty story — always show guarantee line + claim draft.
 - Duplicating TraceRail too closely — lead with **kWh and warranty**, not delay minutes.
 
+## How the code should read
+
+Mert will walk a recruiter through this repo. The code should read like a system engineer wrote a short demo, not like a generated framework.
+
+- Keep files small and the path straight. A function should be readable aloud.
+- Use plant words: site, string, kWh gap, performance ratio, warranty inspection.
+- Comment the PR / gap formula and any decision the name does not show. Do not comment every function.
+- Skip extra layers, base classes, banners, and placeholder scaffolds.
+- After each step, Mert should be able to explain the changed file in a few sentences.
+
+## Before the project is finished
+
+Warn Mert first. Do not delete these notes until he agrees.
+
+Then remove everything that exists for the agent rather than for a recruiter:
+
+- This section, "How the code should read," and "How we work in Cursor."
+- `.cursor/rules/solar-warranty.mdc` and any other agent instructions, except the cost-approval rule.
+- Comments, commands, and files whose only job is to steer the agent or to hide that an agent wrote the code.
+
+Keep the product, the README, the demo script, and the PR / gap explanation. The plain coding style stays. The notes about that style do not.
+
 ## Cost approval
 
-Any action that can cost Mert money must stop first. State the amount, then ask exactly: **“This will cost you this amount. Do you approve this action?”** Do not continue until he says yes. Includes cloud host, OpenAI, paid weather APIs, Azure, etc.
+Finish the code on this Mac. Do not deploy to the cloud until Mert says the demo is ready for recruiters.
+
+Any action that can cost Mert money must stop first. State the amount, then ask exactly: **“This will cost you this amount. Do you approve this action?”** Do not continue until he says yes. This includes Fly.io, Azure, OpenAI, paid weather APIs, and any other paid service. **Keep this rule when agent-only notes are removed.**
+
+Do not call OpenAI, start a cloud host, or buy a weather API without that sentence and a yes.
 
 ## How we work in Cursor
 
-- One `PROJECT.md` is the memory; keep unchecked steps honest.
-- Small files, explainable aloud; synthetic data only.
-- Commit and push when Mert asks or when a finished step is done (separate repo from TraceRail).
+- This folder is the project. Open it before coding (not the TraceRail folder).
+- This file is the memory. Update it when a decision changes.
+- `.cursor/rules/solar-warranty.mdc` keeps a new chat inside this scope.
+- Resume line: read `PROJECT.md` and continue from the next unchecked step.
+- Prefer minimum token use: small diffs, read only files needed for the task, no deploy loops unless Mert asks.
+- Commit and push when Mert asks or when a finished step is done.
 
 ## Open decisions for Mert
 

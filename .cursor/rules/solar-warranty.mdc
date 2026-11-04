@@ -1,0 +1,18 @@
+---
+description: Solar warranty demo scope, synthetic data, and cost rule
+alwaysApply: true
+---
+
+# Solar warranty demo
+
+Read `PROJECT.md` before changing scope. It is the plan.
+
+- Solar output warranty demo. Success metric is kWh gap vs guarantee and claim readiness.
+- Synthetic data only. Never add real plant SCADA, customer names, or OEM confidential curves.
+- One workflow: ingest, score, rank, claim draft, human accept or edit.
+- Performance and warranty twin: PR, kWh gap, thermal stress, SLA — not GIS, IV curves, or paid weather by default.
+- Stack stays FastAPI, simple UI, SQLite, one JSON LLM call for claim text.
+- Finish on this Mac. Do not deploy or leave a cloud machine running until Mert asks.
+- Prefer small diffs and low token use. No extra layers or comments on every function.
+- Before calling the project finished, warn Mert, then follow "Before the project is finished" in `PROJECT.md`. Remove agent-only notes. Do not remove them earlier. Keep the cost-approval rule.
+- Any action that can cost Mert money must stop first. State the amount, then ask exactly: "This will cost you this amount. Do you approve this action?" Do not continue until he says yes. This includes Fly.io, Azure, OpenAI, paid weather APIs, and any other paid service.

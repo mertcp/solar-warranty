@@ -197,6 +197,48 @@ def site_detail(site_id: int, session: Session = Depends(session_scope)):
     return body
 
 
+@app.get("/sites/{site_id}/evidence")
+def evidence(site_id: int, session: Session = Depends(session_scope)):
+    """JSON bundle a warranty desk would attach to a claim."""
+    site = _one(session, site_id)
+    draft = site.claim_drafts[-1] if site.claim_drafts else None
+    return {
+        "site": site.code,
+        "rated_kwp": site.rated_kwp,
+        "inverter_serial": site.inverter_serial,
+        "warranty_start": site.warranty_start.isoformat(),
+        "guaranteed_pr": site.guaranteed_pr,
+        "performance_ratio": site.performance_ratio,
+        "kwh_gap": site.kwh_gap,
+        "thermal_stress": site.thermal_stress,
+        "sla_days_late": site.sla_days_late,
+        "formulas": {
+            "pr": "actual_kwh / expected_kwh",
+            "gap": "max(0, expected_kwh * guaranteed_pr - actual_kwh)",
+        },
+        "milestones": [
+            {
+                "kind": m.kind,
+                "planned_on": m.planned_on.isoformat(),
+                "actual_on": m.actual_on.isoformat() if m.actual_on else None,
+            }
+            for m in site.milestones
+        ],
+        "events": [
+            {"at": e.occurred_at.isoformat(), "summary": e.summary, "fault_code": e.fault_code}
+            for e in site.events
+        ],
+        "claim_draft": None
+        if draft is None
+        else {
+            "action": draft.edited_action or draft.action,
+            "window": draft.window,
+            "kwh_at_risk": draft.kwh_at_risk,
+            "status": draft.status,
+        },
+    }
+
+
 @app.post("/sites/{site_id}/readings")
 def add_reading(site_id: int, incoming: ReadingIn, session: Session = Depends(session_scope)):
     site = _one(session, site_id)

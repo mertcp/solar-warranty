@@ -179,6 +179,62 @@
       });
     }
 
+    function drawWarrantyChart(site) {
+      var box = document.getElementById("warranty-chart");
+      if (!box) return;
+      var byDay = {};
+      site.readings.forEach(function (pt) {
+        if (pt.metric !== "daily_kwh" && pt.metric !== "expected_kwh") return;
+        if (!byDay[pt.on]) byDay[pt.on] = {};
+        byDay[pt.on][pt.metric] = pt.value;
+      });
+      var days = Object.keys(byDay).sort().slice(-14);
+      if (!days.length) {
+        box.innerHTML = "";
+        return;
+      }
+      var max = 1;
+      days.forEach(function (day) {
+        var row = byDay[day];
+        var floor = (row.expected_kwh || 0) * site.guaranteed_pr;
+        max = Math.max(max, row.expected_kwh || 0, row.daily_kwh || 0, floor);
+      });
+      box.innerHTML = "<h3>Warranty vs energy (last 14 days)</h3>";
+      days.forEach(function (day) {
+        var row = byDay[day];
+        var actual = row.daily_kwh || 0;
+        var expected = row.expected_kwh || 0;
+        var floor = expected * site.guaranteed_pr;
+        var wrap = document.createElement("div");
+        wrap.style.marginBottom = "6px";
+        wrap.style.fontSize = "12px";
+        wrap.textContent = day.slice(5) + " — actual " + actual + ", floor " + Math.round(floor * 10) / 10;
+        var track = document.createElement("div");
+        track.style.height = "10px";
+        track.style.background = "#eee";
+        track.style.position = "relative";
+        function bar(color, value, top) {
+          var el = document.createElement("div");
+          el.style.position = "absolute";
+          el.style.left = "0";
+          el.style.top = top + "px";
+          el.style.height = "3px";
+          el.style.width = (100 * value / max) + "%";
+          el.style.background = color;
+          track.appendChild(el);
+        }
+        bar("#3d6b4f", actual, 0);
+        bar("#9bb396", expected, 4);
+        bar("#c44", floor, 7);
+        wrap.appendChild(track);
+        box.appendChild(wrap);
+      });
+      var legend = document.createElement("p");
+      legend.className = "muted";
+      legend.textContent = "Green actual, grey expected, red warranty floor (expected × guaranteed PR).";
+      box.appendChild(legend);
+    }
+
     function warrantySeries(readings) {
       var actual = [];
       var expected = [];
@@ -207,8 +263,11 @@
         + "<p class=\"muted\">" + site.formula_pr + ". " + site.formula_gap + ".</p>"
         + "<p>PR " + site.performance_ratio + " vs guarantee " + site.guaranteed_pr
         + ". Gap " + site.kwh_gap + " kWh. Thermal stress " + site.thermal_stress + ".</p>"
+        + "<div id=\"warranty-chart\"></div>"
         + "<p>" + warrantySeries(site.readings) + "</p>"
-        + "<p>" + sla + "</p>";
+        + "<p>" + sla + "</p>"
+        + "<p><a href=\"/sites/" + site.id + "/evidence\" target=\"_blank\">Evidence JSON</a></p>";
+      drawWarrantyChart(site);
       if (draft) {
         document.getElementById("accept").onclick = function () { decide(draft.id, "accepted", null); };
         document.getElementById("save-edit").onclick = function () {

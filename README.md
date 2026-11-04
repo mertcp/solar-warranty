@@ -29,6 +29,7 @@ Open http://127.0.0.1:8001/ — site **SV-03** should lead the portfolio. Click 
 curl -s http://127.0.0.1:8001/portfolio | python3 -m json.tool | head -30
 curl -s http://127.0.0.1:8001/sites/3 | python3 -m json.tool | head -40
 curl -s -X POST http://127.0.0.1:8001/sites/3/claim
+curl -s http://127.0.0.1:8001/sites/3/evidence | python3 -m json.tool | head -25
 ```
 
 Open `/docs` for ingest (`POST /sites/{id}/readings`, `POST /sites/{id}/milestones`).
