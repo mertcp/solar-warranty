@@ -1,6 +1,6 @@
 # Solar warranty performance demo
 
-Living plan for this repo. Created 4 Nov 2026. Status: repo started; plan and warranty data catalog in place — no application code yet.
+Living plan for this repo. Created 4 Nov 2026. Status: local demo at http://127.0.0.1:8001/ — portfolio, array view, claim draft. Deploy only when Mert asks.
 
 In a new chat in this folder, say: read `PROJECT.md` and continue from the next unchecked step.
 
@@ -114,12 +114,12 @@ Interview line: *We normalize with weather, split grid/curtailment from equipmen
 ## Build order
 
 - [x] Name the product and repo (**Solar warranty demo** / `solar-warranty`, GitHub `mertcp`)
-- [ ] Schema: site, block, string, readings, milestones, events, claim_drafts
-- [ ] Seed synthetic sites, 30-day series, 2–3 spotlight underperformers
-- [ ] Scoring: performance ratio, thermal stress, on-time score; rank list
-- [ ] API: site list, site detail, POST reading, POST milestone, recommend claim draft
-- [ ] UI: site list, site detail, warranty vs actual chart, claim accept/edit
-- [ ] README, curl, demo script
+- [x] Schema: site, string, readings, milestones, events, claim_drafts (`app/models.py`)
+- [x] Seed 12 sites, 30-day series, spotlights SV-03, SV-07, SV-11 (`app/seed.py`)
+- [x] Scoring: PR, kWh gap, thermal stress, SLA days (`app/scoring.py`)
+- [x] API: portfolio, site detail, POST reading/milestone, claim draft (`app/api.py`)
+- [x] UI: portfolio table, array side view, claim accept/edit (`app/portfolio.html`)
+- [x] README, curl, demo script; CI on push (`check.yml`)
 - [ ] Deploy only when Mert asks (state cost and get approval)
 
 ## Eight-minute script (target)

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Solar warranty — portfolio</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 24px; color: #1a2a1a; background: #f4f7f2; }
+    h1 { font-size: 22px; font-weight: normal; margin: 0 0 4px; }
+    main { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 14px; }
+    tr { cursor: pointer; }
+    tr.selected { background: #e3ece0; }
+    section { background: white; padding: 16px; margin-bottom: 16px; }
+    button { font: inherit; padding: 6px 10px; }
+    textarea { width: 100%; min-height: 72px; font: inherit; }
+    .bar { height: 8px; background: #3d6b4f; margin-top: 4px; }
+    .muted { color: #555; font-size: 14px; }
+    #array svg { display: block; max-width: 520px; }
+  </style>
+</head>
+<body>
+  <h1>Solar warranty demo</h1>
+  <p class="muted">Sites ranked by kWh below the warranty floor. Click a string to open the claim line.</p>
+  <section id="array-panel">
+    <h2 id="site-title">Site</h2>
+    <div id="array"></div>
+  </section>
+  <main>
+    <div>
+      <section>
+        <h2>kWh gap by region</h2>
+        <div id="by-region"></div>
+      </section>
+      <section>
+        <h2>Sites by state</h2>
+        <div id="by-state"></div>
+      </section>
+      <h2>Portfolio</h2>
+      <table>
+        <thead>
+          <tr><th>Site</th><th>PR</th><th>Gap kWh</th><th>Heat</th><th>SLA days</th><th>State</th></tr>
+        </thead>
+        <tbody id="portfolio"></tbody>
+      </table>
+    </div>
+    <section id="detail"><p class="muted">Select a site or string.</p></section>
+  </main>
+  <script>
+    var portfolio = [];
+    var selectedId = null;
+
+    function load() {
+      fetch("/portfolio").then(function (r) { return r.json(); }).then(function (rows) {
+        portfolio = rows;
+        drawTable();
+        drawCharts();
+        if (!selectedId && rows.length) openSite(rows[0].id);
+      });
+    }
+
+    function drawTable() {
+      var body = document.getElementById("portfolio");
+      body.innerHTML = "";
+      portfolio.forEach(function (row) {
+        var tr = document.createElement("tr");
+        if (row.id === selectedId) tr.className = "selected";
+        tr.innerHTML = "<td>" + row.code + "</td><td>" + row.performance_ratio + "</td><td>"
+          + row.kwh_gap + "</td><td>" + row.thermal_stress + "</td><td>" + row.sla_days_late
+          + "</td><td>" + row.state.replace(/_/g, " ") + "</td>";
+        tr.onclick = function () { openSite(row.id); };
+        body.appendChild(tr);
+      });
+    }
+
+    function drawCharts() {
+      var regions = {};
+      var states = {};
+      portfolio.forEach(function (row) {
+        regions[row.region] = (regions[row.region] || 0) + row.kwh_gap;
+        states[row.state] = (states[row.state] || 0) + 1;
+      });
+      barChart("by-region", regions, " kWh");
+      barChart("by-state", states, "");
+    }
+
+    function barChart(id, totals, suffix) {
+      var box = document.getElementById(id);
+      var names = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; });
+      var max = names.reduce(function (p, n) { return Math.max(p, totals[n]); }, 1);
+      box.innerHTML = "";
+      names.forEach(function (name) {
+        var value = Math.round(totals[name] * 10) / 10;
+        var row = document.createElement("div");
+        row.style.marginBottom = "8px";
+        row.innerHTML = "<div>" + name + " — " + value + suffix + "</div>";
+        var bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.width = (100 * totals[name] / max) + "%";
+        row.appendChild(bar);
+        box.appendChild(row);
+      });
+    }
+
+    function drawArray(site) {
+      var box = document.getElementById("array");
+      document.getElementById("site-title").textContent = site.code + " · " + site.rated_kwp + " kWp";
+      box.innerHTML = "";
+      var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 480 120");
+      svg.setAttribute("width", "100%");
+      var rack = document.createElementNS(svg.namespaceURI, "rect");
+      rack.setAttribute("x", 20);
+      rack.setAttribute("y", 30);
+      rack.setAttribute("width", 440);
+      rack.setAttribute("height", 60);
+      rack.setAttribute("rx", 8);
+      rack.setAttribute("fill", "#eef3eb");
+      rack.setAttribute("stroke", "#1a2a1a");
+      svg.appendChild(rack);
+      var inv = document.createElementNS(svg.namespaceURI, "rect");
+      inv.setAttribute("x", 200);
+      inv.setAttribute("y", 8);
+      inv.setAttribute("width", 80);
+      inv.setAttribute("height", 24);
+      inv.setAttribute("fill", "#c5d4c0");
+      inv.setAttribute("stroke", "#1a2a1a");
+      svg.appendChild(inv);
+      var invLabel = document.createElementNS(svg.namespaceURI, "text");
+      invLabel.setAttribute("x", 240);
+      invLabel.setAttribute("y", 24);
+      invLabel.setAttribute("text-anchor", "middle");
+      invLabel.setAttribute("font-size", "11");
+      invLabel.textContent = "inverter";
+      svg.appendChild(invLabel);
+      var w = 90;
+      var gap = 12;
+      site.strings.forEach(function (unit, i) {
+        var x = 36 + i * (w + gap);
+        var hot = unit.module_temp_c > 55;
+        var block = document.createElementNS(svg.namespaceURI, "rect");
+        block.setAttribute("x", x);
+        block.setAttribute("y", 42);
+        block.setAttribute("width", w);
+        block.setAttribute("height", 36);
+        block.setAttribute("rx", 4);
+        block.setAttribute("fill", hot ? "#e8c4a8" : "#d3ddd0");
+        block.setAttribute("stroke", "#1a2a1a");
+        block.setAttribute("role", "button");
+        block.setAttribute("tabindex", "0");
+        block.setAttribute("aria-label", unit.label);
+        block.style.cursor = "pointer";
+        block.onclick = function () { openSite(site.id); };
+        svg.appendChild(block);
+        var t = document.createElementNS(svg.namespaceURI, "text");
+        t.setAttribute("x", x + w / 2);
+        t.setAttribute("y", 64);
+        t.setAttribute("text-anchor", "middle");
+        t.setAttribute("font-size", "12");
+        t.style.pointerEvents = "none";
+        t.textContent = unit.label + " " + unit.module_temp_c + "°C";
+        svg.appendChild(t);
+      });
+      box.appendChild(svg);
+    }
+
+    function openSite(id) {
+      selectedId = id;
+      drawTable();
+      fetch("/sites/" + id).then(function (r) { return r.json(); }).then(function (site) {
+        drawArray(site);
+        if (site.claim_drafts.length) {
+          drawDetail(site);
+          return;
+        }
+        fetch("/sites/" + id + "/claim", { method: "POST" }).then(function () {
+          fetch("/sites/" + id).then(function (r) { return r.json(); }).then(drawDetail);
+        });
+      });
+    }
+
+    function warrantySeries(readings) {
+      var actual = [];
+      var expected = [];
+      readings.forEach(function (pt) {
+        if (pt.metric === "daily_kwh") actual.push(pt);
+        if (pt.metric === "expected_kwh") expected.push(pt);
+      });
+      if (!actual.length) return "No energy series.";
+      var lastA = actual[actual.length - 1].value;
+      var lastE = expected[expected.length - 1].value;
+      return "Last day actual " + lastA + " kWh, expected " + lastE + " kWh.";
+    }
+
+    function drawDetail(site) {
+      var draft = site.claim_drafts[site.claim_drafts.length - 1];
+      var ms = site.milestones[0];
+      var sla = ms ? ("Inspection planned " + ms.planned_on + ", actual " + (ms.actual_on || "missed")) : "";
+      var draftBlock = draft
+        ? "<p>" + draft.action + "</p><p class=\"muted\">" + draft.window + " · " + draft.kwh_at_risk
+          + " kWh · " + draft.status + "</p><textarea id=\"edit\">" + draft.action
+          + "</textarea><p><button id=\"accept\">Accept</button> <button id=\"save-edit\">Save edit</button></p>"
+        : "<p class=\"muted\">No claim draft yet.</p>";
+      document.getElementById("detail").innerHTML =
+        "<h2>" + site.code + " · claim</h2>"
+        + draftBlock
+        + "<p class=\"muted\">" + site.formula_pr + ". " + site.formula_gap + ".</p>"
+        + "<p>PR " + site.performance_ratio + " vs guarantee " + site.guaranteed_pr
+        + ". Gap " + site.kwh_gap + " kWh. Thermal stress " + site.thermal_stress + ".</p>"
+        + "<p>" + warrantySeries(site.readings) + "</p>"
+        + "<p>" + sla + "</p>";
+      if (draft) {
+        document.getElementById("accept").onclick = function () { decide(draft.id, "accepted", null); };
+        document.getElementById("save-edit").onclick = function () {
+          decide(draft.id, "edited", document.getElementById("edit").value);
+        };
+      }
+    }
+
+    function decide(id, status, edited) {
+      fetch("/claims/" + id + "/decision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: status, edited_action: edited })
+      }).then(function () { openSite(selectedId); });
+    }
+
+    load();
+  </script>
+</body>
+</html>
