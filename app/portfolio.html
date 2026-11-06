@@ -2,286 +2,744 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Solar warranty — portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Warranty Pulse — portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Georgia, serif; margin: 24px; color: #1a2a1a; background: #f4f7f2; }
-    h1 { font-size: 22px; font-weight: normal; margin: 0 0 4px; }
-    main { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 14px; }
-    tr { cursor: pointer; }
-    tr.selected { background: #e3ece0; }
-    section { background: white; padding: 16px; margin-bottom: 16px; }
-    button { font: inherit; padding: 6px 10px; }
-    textarea { width: 100%; min-height: 72px; font: inherit; }
-    .bar { height: 8px; background: #3d6b4f; margin-top: 4px; }
-    .muted { color: #555; font-size: 14px; }
-    #array svg { display: block; max-width: 520px; }
+    :root {
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #0369a1;
+      --primary-dark: #0c4a6e;
+      --accent: #0ea5e9;
+      --green: #059669;
+      --green-bg: #ecfdf5;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      margin: 0;
+      color: var(--text);
+      background: transparent;
+      line-height: 1.55;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+    }
+    /* Unsplash — Andreas Gucklhorn (app/assets/solar-farm.jpg). Fixed z-index 0 — not negative, or it hides behind body fill. */
+    .page-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-color: var(--bg);
+    }
+    .page-backdrop::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("/assets/solar-farm.jpg") center center / cover no-repeat;
+      opacity: 0.30;
+    }
+    .page-backdrop::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(240, 242, 245, 0.52) 0%, rgba(240, 242, 245, 0.62) 100%);
+    }
+    .topbar, .shell { position: relative; z-index: 1; }
+    .num { font-variant-numeric: tabular-nums; }
+    .shell { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; }
+    .topbar {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #0284c7, #0369a1);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 8px rgba(3, 105, 161, 0.35);
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .brand p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .env-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 24px 0 20px;
+    }
+    @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    .register-card { margin-top: 4px; }
+    .table-scroll { overflow-x: auto; margin: 0 -4px; }
+    .register-table { min-width: 1080px; }
+    .register-table th, .register-table td { padding: 12px 14px 12px 0; white-space: nowrap; }
+    .register-table th.num, .register-table td.num { text-align: right; padding-right: 0; }
+    .register-table td:first-child { white-space: nowrap; }
+    .loc-primary { font-weight: 600; color: var(--text); }
+    .loc-sub { font-size: 12px; margin-top: 2px; }
+    .inv-sub { font-size: 12px; color: var(--muted); font-weight: 400; }
+    tr.plant-row { cursor: pointer; transition: background 0.12s ease; }
+    tr.plant-row td {
+      background: rgba(255, 255, 255, 0.94);
+      padding: 16px 14px 16px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr.plant-row:hover td { background: #f0f9ff; }
+    tr.plant-row.open td { background: #e0f2fe; }
+    tr.plant-row td.plant-code { font-weight: 600; color: var(--primary-dark); }
+    .plant-chev {
+      display: inline-block;
+      width: 28px;
+      text-align: center;
+      color: var(--primary);
+      font-size: 12px;
+    }
+    tr.panel-block { cursor: default; }
+    tr.panel-block:hover td { background: transparent; }
+    tr.panel-block td {
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--border);
+      white-space: normal;
+    }
+    .panel-wrap {
+      margin: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      overflow: hidden;
+    }
+    .panel-wrap-head {
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid #f1f5f9;
+      background: #f8fafc;
+    }
+    .panel-status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      padding: 12px 14px;
+      font-size: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fff;
+    }
+    .panel-status-bar span { display: inline-flex; align-items: center; gap: 6px; }
+    .panel-status-bar .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+    }
+    .panel-status-bar .dot.critical { background: var(--red); }
+    .panel-status-bar .dot.warning { background: var(--amber); }
+    .panel-status-bar .dot.healthy { background: var(--green); }
+    .panel-table tr.panel-row-critical td {
+      background: rgba(254, 226, 226, 0.55);
+    }
+    .panel-table tr.panel-row-critical:hover td {
+      background: rgba(254, 202, 202, 0.65);
+    }
+    .panel-score {
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+    .panel-score.high { color: var(--red); }
+    .panel-scroll { max-height: 420px; overflow: auto; }
+    .panel-table { min-width: 640px; width: 100%; }
+    .panel-table th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      z-index: 1;
+      padding: 8px 12px 8px 0;
+      font-size: 10px;
+    }
+    .panel-table td {
+      padding: 7px 12px 7px 0;
+      font-size: 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .panel-table td:first-child { font-weight: 500; color: var(--text); }
+    .chip.panel_ok { background: var(--green-bg); color: var(--green); }
+    .chip.panel_hot { background: var(--red-bg); color: var(--red); }
+    .chip.panel_under { background: var(--amber-bg); color: var(--amber); }
+    .card {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+    .card-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .card-head h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .card-head span { font-size: 12px; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 10px 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 14px 10px 14px 0;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    td:first-child { font-weight: 600; color: var(--primary-dark); }
+    tbody tr { cursor: pointer; transition: background 0.12s ease; }
+    tbody tr:hover td { background: #f8fafc; }
+    tbody tr.selected td {
+      background: #f0f9ff;
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+    .chip {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .chip.claim_ready { background: var(--red-bg); color: var(--red); }
+    .chip.underperforming { background: var(--amber-bg); color: var(--amber); }
+    .chip.healthy { background: var(--green-bg); color: var(--green); }
+    .chip.draft { background: #eff6ff; color: #2563eb; }
+    .chip.accepted { background: var(--green-bg); color: var(--green); }
+    .chip.edited { background: #f5f3ff; color: #7c3aed; }
+    .claim-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+    .claim-card .claim-text {
+      font-size: 15px;
+      line-height: 1.55;
+      margin: 0 0 12px;
+      color: var(--text);
+    }
+    .claim-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .claim-meta strong { color: var(--text); font-weight: 600; }
+    .detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+    .detail-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+    textarea {
+      width: 100%;
+      min-height: 96px;
+      font: inherit;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 0 0 14px;
+      resize: vertical;
+      background: var(--surface);
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      font: inherit;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.08s;
+    }
+    button:active { transform: scale(0.98); }
+    button.primary { background: var(--primary); color: #fff; }
+    button.primary:hover { background: var(--primary-dark); }
+    button.secondary {
+      background: var(--surface);
+      color: var(--primary);
+      border: 1px solid var(--border);
+    }
+    button.secondary:hover { background: #f0f9ff; border-color: #bae6fd; }
+    a.link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    a.link:hover { text-decoration: underline; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: var(--surface);
+    }
+    .metric .muted { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .metric strong { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+    .metric.warn strong { color: var(--red); }
+    .formula-box {
+      font-size: 12px;
+      color: var(--muted);
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 16px 0;
+      line-height: 1.5;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 24px 0 12px;
+    }
+    .warranty-chart h3 {
+      margin: 0 0 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .energy-row { margin-bottom: 12px; }
+    .energy-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .energy-bars { position: relative; height: 28px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+    .energy-bars .actual {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, #059669, #34d399);
+      border-radius: 6px 0 0 6px;
+    }
+    .energy-bars .expected {
+      position: absolute; left: 0; top: 4px; height: 8px;
+      background: #94a3b8; border-radius: 4px; opacity: 0.85;
+    }
+    .energy-bars .floor {
+      position: absolute; left: 0; bottom: 0; height: 3px;
+      background: var(--red);
+    }
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .muted { color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
-  <h1>Solar warranty demo</h1>
-  <p class="muted">Sites ranked by kWh below the warranty floor. Click a string to open the claim line.</p>
-  <section id="array-panel">
-    <h2 id="site-title">Site</h2>
-    <div id="array"></div>
-  </section>
-  <main>
-    <div>
-      <section>
-        <h2>kWh gap by region</h2>
-        <div id="by-region"></div>
-      </section>
-      <section>
-        <h2>Sites by state</h2>
-        <div id="by-state"></div>
-      </section>
-      <h2>Portfolio</h2>
-      <table>
-        <thead>
-          <tr><th>Site</th><th>PR</th><th>Gap kWh</th><th>Heat</th><th>SLA days</th><th>State</th></tr>
-        </thead>
-        <tbody id="portfolio"></tbody>
-      </table>
+  <div class="page-backdrop" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">☀</div>
+        <div>
+          <h1>Warranty Pulse</h1>
+          <p>Portfolio warranty &amp; performance intelligence</p>
+        </div>
+      </div>
+      <span class="env-tag">Synthetic demo · SQLite</span>
     </div>
-    <section id="detail"><p class="muted">Select a site or string.</p></section>
-  </main>
+  </header>
+  <div class="shell">
+    <div class="kpi-row" id="kpi-row" hidden>
+      <div class="kpi"><div class="kpi-label">Sites in portfolio</div><div class="kpi-value num" id="kpi-sites">—</div></div>
+      <div class="kpi"><div class="kpi-label">Needs review</div><div class="kpi-value num" id="kpi-review">—</div></div>
+      <div class="kpi"><div class="kpi-label">Total kWh gap</div><div class="kpi-value num" id="kpi-gap">—</div></div>
+      <div class="kpi"><div class="kpi-label">Avg performance ratio</div><div class="kpi-value num" id="kpi-pr">—</div></div>
+    </div>
+    <section class="card register-card">
+      <div class="card-head">
+        <h2>UK portfolio register</h2>
+        <span>Click a power plant to expand its module register</span>
+      </div>
+      <div class="table-scroll">
+        <table class="register-table">
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th>Power plant</th>
+              <th>City · borough</th>
+              <th>Asset state</th>
+              <th class="num">Panels</th>
+              <th class="num">Plant kWh gap</th>
+            </tr>
+          </thead>
+          <tbody id="register"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
   <script>
     var portfolio = [];
-    var selectedId = null;
+    var siteDetails = {};
+    var expandedPlants = {};
+    var panelCache = {};
+    function panelsPerPlant(siteId) {
+      return 100 + ((siteId * 43 + 7) % 61);
+    }
+    var TOP_CRITICAL_ROWS = 8;
+    var COLS = 6;
+    /* Display-only: seed/API region tokens → English UK labels (DB unchanged). */
+    var UK_REGION_LABELS = {
+      Nord: "North West England",
+      Sud: "South East England",
+      Jutland: "Yorkshire and the Humber",
+      Eifel: "West Midlands",
+      Alentejo: "South West England",
+      "Skåne": "East of England"
+    };
+    /* Display-only private names and city/borough (aligned to seed region token per site). */
+    var PLANT_DISPLAY = {
+      "SV-01": { name: "Meridian Fields", city: "Reading", borough: "Wokingham" },
+      "SV-02": { name: "Mendip Heights", city: "Bristol", borough: "Clevedon" },
+      "SV-03": { name: "Calder Moss Solar", city: "Manchester", borough: "Wigan" },
+      "SV-04": { name: "Cotswold Rise", city: "Guildford", borough: "Farnham" },
+      "SV-05": { name: "Mersey Vale Energy", city: "Liverpool", borough: "Ormskirk" },
+      "SV-06": { name: "Vale of York Array", city: "Leeds", borough: "Wakefield" },
+      "SV-07": { name: "Black Country Solar", city: "Birmingham", borough: "Bromsgrove" },
+      "SV-08": { name: "Ashford Green", city: "Maidstone", borough: "Ashford" },
+      "SV-09": { name: "Cornwall Edge", city: "Exeter", borough: "Okehampton" },
+      "SV-10": { name: "Humber Bright", city: "Hull", borough: "Bridlington" },
+      "SV-11": { name: "Thames Haven", city: "Reading", borough: "Henley-on-Thames" },
+      "SV-12": { name: "Avon Reach", city: "Coventry", borough: "Rugby" },
+      "SV-13": { name: "Weald Solar", city: "Brighton", borough: "Haywards Heath" },
+      "SV-14": { name: "Pennine Ridge", city: "Manchester", borough: "Bolton" }
+    };
+
+    function plantDisplay(code) {
+      return PLANT_DISPLAY[code] || { name: code, city: "—", borough: "—" };
+    }
+
+    function regionLabel(raw) {
+      return UK_REGION_LABELS[raw] || raw;
+    }
+
+    function chip(state) {
+      var label = state.replace(/_/g, " ");
+      return '<span class="chip ' + state + '">' + label + "</span>";
+    }
+
+    function stateRank(state) {
+      if (state === "claim_ready") return 0;
+      if (state === "underperforming") return 1;
+      return 2;
+    }
+
+    function sortByPriority(a, b) {
+      var ra = stateRank(a.state);
+      var rb = stateRank(b.state);
+      if (ra !== rb) return ra - rb;
+      if (b.kwh_gap !== a.kwh_gap) return b.kwh_gap - a.kwh_gap;
+      if (b.thermal_stress !== a.thermal_stress) return b.thermal_stress - a.thermal_stress;
+      return a.code.localeCompare(b.code);
+    }
+
+    function panelRand(siteId, n) {
+      var x = ((siteId * 7919 + n * 104729) >>> 0) / 4294967296;
+      return x;
+    }
+
+    function padPanel(n) {
+      var s = String(n);
+      while (s.length < 4) s = "0" + s;
+      return s;
+    }
+
+    function panelStatusChip(status) {
+      var labels = { panel_ok: "Normal", panel_hot: "Hot spot", panel_under: "Low output" };
+      return '<span class="chip ' + status + '">' + (labels[status] || status) + "</span>";
+    }
+
+    function panelCriticalRank(status) {
+      if (status === "panel_hot") return 0;
+      if (status === "panel_under") return 1;
+      return 2;
+    }
+
+    function panelPriorityScore(p) {
+      var tier = panelCriticalRank(p.status);
+      var base = tier === 0 ? 72 : tier === 1 ? 44 : 12;
+      var tempBoost = Math.max(0, p.temp_c - 45) * 1.4;
+      var outputDrag = Math.max(0, 0.34 - p.output_kwh) * 90;
+      return Math.round(Math.min(99, base + tempBoost + outputDrag));
+    }
+
+    function sortPanelsByCritical(a, b) {
+      if (b.priority_score !== a.priority_score) return b.priority_score - a.priority_score;
+      if (b.temp_c !== a.temp_c) return b.temp_c - a.temp_c;
+      return a.output_kwh - b.output_kwh;
+    }
+
+    function panelStatusCounts(panels) {
+      var counts = { critical: 0, warning: 0, healthy: 0 };
+      panels.forEach(function (p) {
+        if (p.status === "panel_hot") counts.critical += 1;
+        else if (p.status === "panel_under") counts.warning += 1;
+        else counts.healthy += 1;
+      });
+      return counts;
+    }
+
+    function panelSummaryBarHtml(panels) {
+      var c = panelStatusCounts(panels);
+      return "<div class=\"panel-status-bar\">"
+        + "<span><span class=\"dot critical\"></span><strong class=\"num\">" + c.critical + "</strong> critical</span>"
+        + "<span><span class=\"dot warning\"></span><strong class=\"num\">" + c.warning + "</strong> warning</span>"
+        + "<span><span class=\"dot healthy\"></span><strong class=\"num\">" + c.healthy + "</strong> healthy</span>"
+        + "</div>";
+    }
+
+    function buildPanels(site, plantState) {
+      var target = panelsPerPlant(site.id);
+      if (panelCache[site.id] && panelCache[site.id].length === target) return panelCache[site.id];
+      var strings = site.strings && site.strings.length
+        ? site.strings
+        : [{ label: "B1", module_temp_c: 45 }];
+      var plantBias = stateRank(plantState || "healthy");
+      var panels = [];
+      var idx = 0;
+      while (panels.length < target) {
+        var su = strings[idx % strings.length];
+        var h = panelRand(site.id, panels.length);
+        var temp = Math.round((su.module_temp_c + plantBias * 4 + (h - 0.5) * 12) * 10) / 10;
+        var output = Math.round((0.28 + h * 0.1 - plantBias * 0.03) * 100) / 100;
+        var status = "panel_ok";
+        if (temp > 55) status = "panel_hot";
+        else if (output < 0.3) status = "panel_under";
+        var panel = {
+          id: site.code + "-P" + padPanel(panels.length + 1),
+          string: su.label,
+          temp_c: temp,
+          output_kwh: output,
+          status: status
+        };
+        panel.priority_score = panelPriorityScore(panel);
+        panels.push(panel);
+        idx += 1;
+      }
+      panels.sort(sortPanelsByCritical);
+      panelCache[site.id] = panels;
+      return panels;
+    }
+
+    function panelTableHtml(site, plantState) {
+      var panels = buildPanels(site, plantState);
+      var rows = panels.map(function (p, i) {
+        var scoreClass = p.priority_score >= 60 ? " high" : "";
+        var rowClass = i < TOP_CRITICAL_ROWS ? " class=\"panel-row-critical\"" : "";
+        return "<tr" + rowClass + "><td class=\"num\">" + p.id + "</td><td>" + p.string + "</td>"
+          + "<td class=\"num panel-score" + scoreClass + "\">" + p.priority_score + "</td>"
+          + "<td class=\"num\">" + p.temp_c + " °C</td><td>" + panelStatusChip(p.status) + "</td><td class=\"num\">"
+          + p.output_kwh + " kWh</td></tr>";
+      }).join("");
+      var title = plantDisplay(site.code).name;
+      return "<div class=\"panel-wrap\"><div class=\"panel-wrap-head\">" + title + " · module register · "
+        + panels.length + " panels (synthetic)</div>"
+        + panelSummaryBarHtml(panels)
+        + "<div class=\"panel-scroll\"><table class=\"panel-table\">"
+        + "<thead><tr><th>Panel ID</th><th>String</th><th class=\"num\">Priority</th><th class=\"num\">Temperature</th><th>Status</th><th class=\"num\">Today output</th></tr></thead>"
+        + "<tbody>" + rows + "</tbody></table></div></div>";
+    }
+
+    function togglePlant(id) {
+      expandedPlants[id] = !expandedPlants[id];
+      drawRegister();
+    }
+
+    function updateKpis(rows) {
+      var review = 0, gap = 0, prSum = 0;
+      rows.forEach(function (row) {
+        if (row.state !== "healthy") review += 1;
+        gap += row.kwh_gap;
+        prSum += row.performance_ratio;
+      });
+      document.getElementById("kpi-sites").textContent = rows.length;
+      document.getElementById("kpi-review").textContent = review;
+      document.getElementById("kpi-gap").textContent = Math.round(gap * 10) / 10;
+      document.getElementById("kpi-pr").textContent = rows.length
+        ? (Math.round((prSum / rows.length) * 1000) / 1000) : "—";
+      document.getElementById("kpi-row").hidden = false;
+    }
 
     function load() {
       fetch("/portfolio").then(function (r) { return r.json(); }).then(function (rows) {
         portfolio = rows;
-        drawTable();
-        drawCharts();
-        if (!selectedId && rows.length) openSite(rows[0].id);
+        updateKpis(rows);
+        return Promise.all(rows.map(function (row) {
+          return fetch("/sites/" + row.id).then(function (r) { return r.json(); });
+        }));
+      }).then(function (sites) {
+        sites.forEach(function (site) { siteDetails[site.id] = site; });
+        drawRegister();
       });
     }
 
-    function drawTable() {
-      var body = document.getElementById("portfolio");
+    function drawRegister() {
+      var body = document.getElementById("register");
       body.innerHTML = "";
-      portfolio.forEach(function (row) {
+      var plants = portfolio.slice().sort(sortByPriority);
+      plants.forEach(function (row) {
+        var site = siteDetails[row.id];
+        var open = !!expandedPlants[row.id];
         var tr = document.createElement("tr");
-        if (row.id === selectedId) tr.className = "selected";
-        tr.innerHTML = "<td>" + row.code + "</td><td>" + row.performance_ratio + "</td><td>"
-          + row.kwh_gap + "</td><td>" + row.thermal_stress + "</td><td>" + row.sla_days_late
-          + "</td><td>" + row.state.replace(/_/g, " ") + "</td>";
-        tr.onclick = function () { openSite(row.id); };
+        tr.className = "plant-row" + (open ? " open" : "");
+        tr.setAttribute("aria-expanded", open ? "true" : "false");
+        var disp = plantDisplay(row.code);
+        tr.innerHTML = "<td><span class=\"plant-chev\">" + (open ? "▼" : "▶") + "</span></td>"
+          + "<td class=\"plant-code\"><div class=\"loc-primary\">" + disp.name + "</div>"
+          + "<div class=\"loc-sub muted\"><span class=\"num\">" + row.code + "</span> · "
+          + regionLabel(row.region) + " · <span class=\"num\">" + row.rated_kwp + "</span> kWp</div></td>"
+          + "<td><div class=\"loc-primary\">" + disp.city + "</div>"
+          + "<div class=\"loc-sub muted\">" + disp.borough + "</div></td>"
+          + "<td>" + chip(row.state) + "</td>"
+          + "<td class=\"num\">" + panelsPerPlant(row.id) + "</td>"
+          + "<td class=\"num\">" + row.kwh_gap + "</td>";
+        tr.onclick = function () { togglePlant(row.id); };
         body.appendChild(tr);
-      });
-    }
-
-    function drawCharts() {
-      var regions = {};
-      var states = {};
-      portfolio.forEach(function (row) {
-        regions[row.region] = (regions[row.region] || 0) + row.kwh_gap;
-        states[row.state] = (states[row.state] || 0) + 1;
-      });
-      barChart("by-region", regions, " kWh");
-      barChart("by-state", states, "");
-    }
-
-    function barChart(id, totals, suffix) {
-      var box = document.getElementById(id);
-      var names = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; });
-      var max = names.reduce(function (p, n) { return Math.max(p, totals[n]); }, 1);
-      box.innerHTML = "";
-      names.forEach(function (name) {
-        var value = Math.round(totals[name] * 10) / 10;
-        var row = document.createElement("div");
-        row.style.marginBottom = "8px";
-        row.innerHTML = "<div>" + name + " — " + value + suffix + "</div>";
-        var bar = document.createElement("div");
-        bar.className = "bar";
-        bar.style.width = (100 * totals[name] / max) + "%";
-        row.appendChild(bar);
-        box.appendChild(row);
-      });
-    }
-
-    function drawArray(site) {
-      var box = document.getElementById("array");
-      document.getElementById("site-title").textContent = site.code + " · " + site.rated_kwp + " kWp";
-      box.innerHTML = "";
-      var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("viewBox", "0 0 480 120");
-      svg.setAttribute("width", "100%");
-      var rack = document.createElementNS(svg.namespaceURI, "rect");
-      rack.setAttribute("x", 20);
-      rack.setAttribute("y", 30);
-      rack.setAttribute("width", 440);
-      rack.setAttribute("height", 60);
-      rack.setAttribute("rx", 8);
-      rack.setAttribute("fill", "#eef3eb");
-      rack.setAttribute("stroke", "#1a2a1a");
-      svg.appendChild(rack);
-      var inv = document.createElementNS(svg.namespaceURI, "rect");
-      inv.setAttribute("x", 200);
-      inv.setAttribute("y", 8);
-      inv.setAttribute("width", 80);
-      inv.setAttribute("height", 24);
-      inv.setAttribute("fill", "#c5d4c0");
-      inv.setAttribute("stroke", "#1a2a1a");
-      svg.appendChild(inv);
-      var invLabel = document.createElementNS(svg.namespaceURI, "text");
-      invLabel.setAttribute("x", 240);
-      invLabel.setAttribute("y", 24);
-      invLabel.setAttribute("text-anchor", "middle");
-      invLabel.setAttribute("font-size", "11");
-      invLabel.textContent = "inverter";
-      svg.appendChild(invLabel);
-      var w = 90;
-      var gap = 12;
-      site.strings.forEach(function (unit, i) {
-        var x = 36 + i * (w + gap);
-        var hot = unit.module_temp_c > 55;
-        var block = document.createElementNS(svg.namespaceURI, "rect");
-        block.setAttribute("x", x);
-        block.setAttribute("y", 42);
-        block.setAttribute("width", w);
-        block.setAttribute("height", 36);
-        block.setAttribute("rx", 4);
-        block.setAttribute("fill", hot ? "#e8c4a8" : "#d3ddd0");
-        block.setAttribute("stroke", "#1a2a1a");
-        block.setAttribute("role", "button");
-        block.setAttribute("tabindex", "0");
-        block.setAttribute("aria-label", unit.label);
-        block.style.cursor = "pointer";
-        block.onclick = function () { openSite(site.id); };
-        svg.appendChild(block);
-        var t = document.createElementNS(svg.namespaceURI, "text");
-        t.setAttribute("x", x + w / 2);
-        t.setAttribute("y", 64);
-        t.setAttribute("text-anchor", "middle");
-        t.setAttribute("font-size", "12");
-        t.style.pointerEvents = "none";
-        t.textContent = unit.label + " " + unit.module_temp_c + "°C";
-        svg.appendChild(t);
-      });
-      box.appendChild(svg);
-    }
-
-    function openSite(id) {
-      selectedId = id;
-      drawTable();
-      fetch("/sites/" + id).then(function (r) { return r.json(); }).then(function (site) {
-        drawArray(site);
-        if (site.claim_drafts.length) {
-          drawDetail(site);
-          return;
+        if (open && site) {
+          var trPanels = document.createElement("tr");
+          trPanels.className = "panel-block";
+          trPanels.innerHTML = "<td colspan=\"" + COLS + "\">" + panelTableHtml(site, row.state) + "</td>";
+          body.appendChild(trPanels);
         }
-        fetch("/sites/" + id + "/claim", { method: "POST" }).then(function () {
-          fetch("/sites/" + id).then(function (r) { return r.json(); }).then(drawDetail);
-        });
       });
-    }
-
-    function drawWarrantyChart(site) {
-      var box = document.getElementById("warranty-chart");
-      if (!box) return;
-      var byDay = {};
-      site.readings.forEach(function (pt) {
-        if (pt.metric !== "daily_kwh" && pt.metric !== "expected_kwh") return;
-        if (!byDay[pt.on]) byDay[pt.on] = {};
-        byDay[pt.on][pt.metric] = pt.value;
-      });
-      var days = Object.keys(byDay).sort().slice(-14);
-      if (!days.length) {
-        box.innerHTML = "";
-        return;
-      }
-      var max = 1;
-      days.forEach(function (day) {
-        var row = byDay[day];
-        var floor = (row.expected_kwh || 0) * site.guaranteed_pr;
-        max = Math.max(max, row.expected_kwh || 0, row.daily_kwh || 0, floor);
-      });
-      box.innerHTML = "<h3>Warranty vs energy (last 14 days)</h3>";
-      days.forEach(function (day) {
-        var row = byDay[day];
-        var actual = row.daily_kwh || 0;
-        var expected = row.expected_kwh || 0;
-        var floor = expected * site.guaranteed_pr;
-        var wrap = document.createElement("div");
-        wrap.style.marginBottom = "6px";
-        wrap.style.fontSize = "12px";
-        wrap.textContent = day.slice(5) + " — actual " + actual + ", floor " + Math.round(floor * 10) / 10;
-        var track = document.createElement("div");
-        track.style.height = "10px";
-        track.style.background = "#eee";
-        track.style.position = "relative";
-        function bar(color, value, top) {
-          var el = document.createElement("div");
-          el.style.position = "absolute";
-          el.style.left = "0";
-          el.style.top = top + "px";
-          el.style.height = "3px";
-          el.style.width = (100 * value / max) + "%";
-          el.style.background = color;
-          track.appendChild(el);
-        }
-        bar("#3d6b4f", actual, 0);
-        bar("#9bb396", expected, 4);
-        bar("#c44", floor, 7);
-        wrap.appendChild(track);
-        box.appendChild(wrap);
-      });
-      var legend = document.createElement("p");
-      legend.className = "muted";
-      legend.textContent = "Green actual, grey expected, red warranty floor (expected × guaranteed PR).";
-      box.appendChild(legend);
-    }
-
-    function warrantySeries(readings) {
-      var actual = [];
-      var expected = [];
-      readings.forEach(function (pt) {
-        if (pt.metric === "daily_kwh") actual.push(pt);
-        if (pt.metric === "expected_kwh") expected.push(pt);
-      });
-      if (!actual.length) return "No energy series.";
-      var lastA = actual[actual.length - 1].value;
-      var lastE = expected[expected.length - 1].value;
-      return "Last day actual " + lastA + " kWh, expected " + lastE + " kWh.";
-    }
-
-    function drawDetail(site) {
-      var draft = site.claim_drafts[site.claim_drafts.length - 1];
-      var ms = site.milestones[0];
-      var sla = ms ? ("Inspection planned " + ms.planned_on + ", actual " + (ms.actual_on || "missed")) : "";
-      var draftBlock = draft
-        ? "<p>" + draft.action + "</p><p class=\"muted\">" + draft.window + " · " + draft.kwh_at_risk
-          + " kWh · " + draft.status + "</p><textarea id=\"edit\">" + draft.action
-          + "</textarea><p><button id=\"accept\">Accept</button> <button id=\"save-edit\">Save edit</button></p>"
-        : "<p class=\"muted\">No claim draft yet.</p>";
-      document.getElementById("detail").innerHTML =
-        "<h2>" + site.code + " · claim</h2>"
-        + draftBlock
-        + "<p class=\"muted\">" + site.formula_pr + ". " + site.formula_gap + ".</p>"
-        + "<p>PR " + site.performance_ratio + " vs guarantee " + site.guaranteed_pr
-        + ". Gap " + site.kwh_gap + " kWh. Thermal stress " + site.thermal_stress + ".</p>"
-        + "<div id=\"warranty-chart\"></div>"
-        + "<p>" + warrantySeries(site.readings) + "</p>"
-        + "<p>" + sla + "</p>"
-        + "<p><a href=\"/sites/" + site.id + "/evidence\" target=\"_blank\">Evidence JSON</a></p>";
-      drawWarrantyChart(site);
-      if (draft) {
-        document.getElementById("accept").onclick = function () { decide(draft.id, "accepted", null); };
-        document.getElementById("save-edit").onclick = function () {
-          decide(draft.id, "edited", document.getElementById("edit").value);
-        };
-      }
-    }
-
-    function decide(id, status, edited) {
-      fetch("/claims/" + id + "/decision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: status, edited_action: edited })
-      }).then(function () { openSite(selectedId); });
     }
 
     load();

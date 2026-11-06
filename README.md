@@ -1,10 +1,24 @@
-# Solar warranty demo
+# Warranty Pulse
 
-Synthetic portfolio monitoring for **heat**, **on-time milestones**, and **performance vs warranty** — so an operator can support a claim with evidence.
+**Portfolio performance and warranty claim readiness for solar operators.**
 
-Runs on this Mac first. All data is synthetic.
+Operators lose time when underperformance shows up in spreadsheets and OEM disputes start without a clean evidence trail. This demo shows how a cloud portfolio view can rank sites by energy gap versus contract, surface heat and SLA risk on the array, and produce a claim narrative a manager can accept or edit—grounded in stored telemetry, not gut feel.
 
-## Run it
+Built as a solutions pre-sales showcase: API-first, synthetic data only, runnable on a laptop. Companion project: [TraceRail](https://github.com/mertcp/tracerail) (rail condition-based maintenance).
+
+**Repository:** [github.com/mertcp/solar-warranty](https://github.com/mertcp/solar-warranty)
+
+---
+
+## What you can show in five minutes
+
+Open the dashboard, lead with site **SV-03** (below the guaranteed performance ratio). Click string **B4** on the array sketch—the OEM review line appears with PR, kWh gap, thermal stress, and inspection timing. Accept or edit the draft. Point recruiters at **/docs** for how a monitoring portal ingests the next daily reading.
+
+Highlights worth naming aloud: ranked portfolio by business impact (kWh gap), visible warranty floor on the energy chart, human-in-the-loop claim decision, one optional LLM step when `OPENAI_API_KEY` is set (rule-based draft otherwise).
+
+---
+
+## Run locally
 
 ```bash
 python3 -m venv .venv
@@ -12,18 +26,27 @@ python3 -m venv .venv
 .venv/bin/uvicorn app.api:app --host 127.0.0.1 --port 8001
 ```
 
-Open http://127.0.0.1:8001/ — site **SV-03** should lead the portfolio. Click a string on the array sketch; the claim line appears without a separate button.
+Open http://127.0.0.1:8001/
 
-## Measurements (v1)
+---
 
-| Theme | Metrics |
-|-------|---------|
-| Performance | `daily_kwh`, `expected_kwh` → PR and kWh gap vs guaranteed PR |
-| Heat | `module_temp_c` (string B4), `inverter_heatsink_temp_c` |
-| On-time | Milestone planned vs actual dates |
-| Faults | Event log with optional fault code |
+## Architecture
 
-## API (recruiter curl)
+Telemetry and milestones land in **SQLite** via **FastAPI**. Scoring computes performance ratio, kWh gap versus guarantee, thermal stress, and SLA lateness. Claim text is drafted from that evidence (`app/claim.py`)—LLM JSON when a key is present, same numbers via rules when not.
+
+```
+monitoring feed → API + database → PR, gap, heat, SLA → claim draft → accept / edit
+```
+
+---
+
+## LinkedIn showcase copy
+
+See **[LINKEDIN.md](LINKEDIN.md)** for a headline, short description, and highlight lines you can paste into a profile project or post.
+
+---
+
+## API samples
 
 ```bash
 curl -s http://127.0.0.1:8001/portfolio | python3 -m json.tool | head -30
@@ -32,22 +55,10 @@ curl -s -X POST http://127.0.0.1:8001/sites/3/claim
 curl -s http://127.0.0.1:8001/sites/3/evidence | python3 -m json.tool | head -25
 ```
 
-Open `/docs` for ingest (`POST /sites/{id}/readings`, `POST /sites/{id}/milestones`).
+Open `/docs` for `POST /sites/{id}/readings` and milestone ingest.
 
-## Architecture
+---
 
-```
-telemetry → FastAPI + SQLite → PR, gap, thermal, SLA → claim draft (LLM if OPENAI_API_KEY)
-```
+## Disclaimer
 
-Without `OPENAI_API_KEY`, claim text uses the same scored numbers via rules in `app/claim.py`.
-
-## Demo script (8 min)
-
-1. SV-03 is below the 0.90 PR guarantee; string B4 runs hot.
-2. Portfolio ranks by kWh gap and shows missed warranty inspection.
-3. Click the array; read the OEM review draft.
-4. Accept or edit; formulas stay visible.
-5. `/docs` — monitoring portal posts the next daily reading.
-
-Separate from [TraceRail](https://github.com/mertcp/tracerail).
+All sites, weather, and OEM curves are **synthetic**. No real customer, SCADA export, or confidential warranty terms from any employer.

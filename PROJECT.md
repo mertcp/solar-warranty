@@ -1,18 +1,26 @@
-# Solar warranty performance demo
+# Warranty Pulse — project plan
 
-Living plan for this repo. Created 4 Nov 2026. Status: local demo at http://127.0.0.1:8001/ — portfolio, array view, claim draft. Deploy only when Mert asks.
+Living plan for **solar-warranty** ([mertcp/solar-warranty](https://github.com/mertcp/solar-warranty)). Updated 4 Nov 2026.
+
+**Status:** Local demo at http://127.0.0.1:8001/ — portfolio ranking, array view, claim draft with accept/edit. Deploy only when Mert asks.
 
 In a new chat in this folder, say: read `PROJECT.md` and continue from the next unchecked step.
 
+## Product positioning (LinkedIn / recruiter)
+
+**Headline:** Portfolio performance and warranty claim readiness for solar operators.
+
+**One-liner:** Rank sites by kWh below contract, expose heat and SLA risk on the array, draft an OEM review line from stored evidence—manager accepts or edits.
+
+**Showcase copy:** See [LINKEDIN.md](LINKEDIN.md). README uses the same professional tone.
+
 ## What we are building
 
-A demo SaaS for **commercial or utility-scale solar**: live **heat** (module and inverter temperature), **on-time** service and commissioning milestones, and **performance** (expected vs actual energy) in one place so an operator can **support a warranty claim** with evidence, not spreadsheets.
+A **business-facing demo SaaS** for commercial and utility-scale solar portfolios: **heat** (module and inverter temperature), **on-time** milestones, and **performance versus warranty** in one workflow—so asset managers support OEM claims with traceable data, not ad hoc exports.
 
-Interview line: a **performance and warranty twin** for a site — not a CAD layout or a physics PV simulator. The product ranks sites and strings by underperformance and thermal stress, shows the warranty curve vs measured output, and drafts a claim packet a human can accept or edit.
+Not a GIS or PV physics simulator. This is a **performance and warranty twin**: rank by business impact (kWh gap), show the guarantee floor on measured output, draft the claim narrative, keep the human gate.
 
-Pitch: catch hot strings and missed SLA windows before they become disputed warranty cases; when output stays below guarantee, export a traceable claim summary.
-
-Audience: CV demo for cloud / SaaS solutions pre-sales (same lane as TraceRail). Synthetic sites and weather only. No real customer names, SCADA exports, or OEM confidential curves.
+**Audience:** CV and solutions pre-sales (cloud / SaaS), alongside TraceRail. **Data:** synthetic only—no real sites, SCADA, or OEM confidential terms.
 
 ## Why this shape
 
@@ -178,7 +186,7 @@ Do not call OpenAI, start a cloud host, or buy a weather API without that senten
 
 ## Open decisions for Mert
 
-1. **Product name** on the CV (e.g. SunTrace, WattGuard, keep generic “Solar warranty demo”).
+1. **Product name** on the CV — working title **Warranty Pulse** (repo stays `solar-warranty`).
 2. **Asset tree:** site → inverter → string, or site → combiner → string?
 3. **Warranty type in the demo:** output (kWh) guarantee only, or also product/workmanship (simpler to start with **output** only).
 4. ~~**Same GitHub account**~~ — yes, `mertcp` / public `solar-warranty`.

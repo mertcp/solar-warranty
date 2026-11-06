@@ -21,7 +21,8 @@ from app.scoring import (
 )
 from app.seed import seed
 
-app = FastAPI(title="Solar warranty demo", version="0.1.0")
+app = FastAPI(title="Warranty Pulse", version="0.1.0")
+APP_DIR = Path(__file__).resolve().parent
 
 
 def session_scope():
@@ -130,8 +131,12 @@ class DecisionIn(BaseModel):
 
 @app.get("/")
 def home():
-    page = Path(__file__).resolve().parent / "portfolio.html"
-    return FileResponse(page)
+    return FileResponse(APP_DIR / "portfolio.html")
+
+
+@app.get("/assets/solar-farm.jpg")
+def solar_farm_background():
+    return FileResponse(APP_DIR / "assets" / "solar-farm.jpg", media_type="image/jpeg")
 
 
 @app.get("/health")
